@@ -1,21 +1,36 @@
-# Base image
-FROM node:22-alpine
+# Build stage
+FROM node:20-alpine AS builder
 
-# Set workdir
 WORKDIR /app
 
-# Copy files
+# Copy package files
 COPY package*.json ./
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
 COPY apps ./apps
 COPY libs ./libs
 
-# Install deps
-RUN npm install
-
-# Build project
+# Build the application
 RUN npm run build
 
-# CMD sẽ được override bởi docker-compose
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm install --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# The command will be overridden by docker-compose
 CMD ["node"]

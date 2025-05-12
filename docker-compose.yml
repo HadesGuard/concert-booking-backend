@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mongo:
     image: mongo:6
@@ -23,11 +25,12 @@ services:
       dockerfile: Dockerfile
     container_name: auth-service
     environment:
+      - NODE_ENV=production
       - MONGO_URI=mongodb://mongo:27017/auth
       - PORT=3001
     ports:
       - '3001:3001'
-    command: npm run start:auth
+    command: node dist/apps/auth-service/main.js
     depends_on:
       - mongo
 
@@ -37,11 +40,12 @@ services:
       dockerfile: Dockerfile
     container_name: concert-service
     environment:
+      - NODE_ENV=production
       - MONGO_URI=mongodb://mongo:27017/concert
       - PORT=3002
     ports:
       - '3002:3002'
-    command: npm run start:concert
+    command: node dist/apps/concert-service/main.js
     depends_on:
       - mongo
 
@@ -51,12 +55,13 @@ services:
       dockerfile: Dockerfile
     container_name: booking-service
     environment:
+      - NODE_ENV=production
       - MONGO_URI=mongodb://mongo:27017/booking
       - REDIS_HOST=redis
       - PORT=3003
     ports:
       - '3003:3003'
-    command: npm run start:booking
+    command: node dist/apps/booking-service/main.js
     depends_on:
       - mongo
       - redis
