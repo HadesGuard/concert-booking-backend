@@ -1,0 +1,66 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/auth
+      - PORT=3001
+    ports:
+      - '3001:3001'
+    command: npm run start:auth
+    depends_on:
+      - mongo
+
+  concert-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: concert-service
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/concert
+      - PORT=3002
+    ports:
+      - '3002:3002'
+    command: npm run start:concert
+    depends_on:
+      - mongo
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: booking-service
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/booking
+      - REDIS_HOST=redis
+      - PORT=3003
+    ports:
+      - '3003:3003'
+    command: npm run start:booking
+    depends_on:
+      - mongo
+      - redis
+
+volumes:
+  mongo_data:
+  redis_data:
