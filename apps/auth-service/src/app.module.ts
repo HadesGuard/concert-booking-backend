@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import * as path from 'path';
+import configuration from './config/configuration';
 
 const envPath =
   process.env.NODE_ENV === 'production'
@@ -17,12 +18,13 @@ const envPath =
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: envPath,
+      load: [configuration],
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'),
+        uri: configService.get<string>('auth.database.uri'),
       }),
     }),
     AuthModule,

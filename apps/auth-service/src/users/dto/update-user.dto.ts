@@ -40,4 +40,9 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   role?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  refreshToken?: string | null;
 }
