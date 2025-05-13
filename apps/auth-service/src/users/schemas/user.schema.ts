@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { BaseSchema } from '@app/common';
 
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
-export class User {
+export class User extends BaseSchema {
   @Prop({ required: true })
   name!: string;
 
@@ -15,10 +16,10 @@ export class User {
   password!: string;
 
   @Prop({ default: false })
-  isEmailVerified: boolean = false;
+  isAdmin!: boolean;
 
-  @Prop({ default: 'user' })
-  role: string = 'user';
+  @Prop({ type: String, default: null })
+  refreshToken?: string | null;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User); 
+export const UserSchema = SchemaFactory.createForClass(User);

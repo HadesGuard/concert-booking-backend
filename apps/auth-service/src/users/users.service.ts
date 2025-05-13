@@ -41,7 +41,7 @@ export class UsersService {
     return this.userModel.find().select('-password').exec();
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string): Promise<UserDocument> {
     const user = await this.userModel.findById(id).select('-password').exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -49,7 +49,7 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<User> {
+  async findByEmail(email: string): Promise<UserDocument> {
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -81,7 +81,10 @@ export class UsersService {
     }
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({ email }).exec();
     if (user && (await bcrypt.compare(password, user.password))) {
       return user;
