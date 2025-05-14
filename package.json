@@ -29,6 +29,7 @@
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\""
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "11.1.0",
     "@nestjs/config": "4.0.2",
@@ -58,6 +59,7 @@
     "@nestjs/cli": "11.0.7",
     "@nestjs/schematics": "11.0.5",
     "@nestjs/testing": "11.1.0",
+    "@types/axios": "^0.14.4",
     "@types/bcrypt": "5.0.2",
     "@types/express": "5.0.1",
     "@types/jest": "29.5.2",
