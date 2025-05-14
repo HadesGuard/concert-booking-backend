@@ -35,6 +35,7 @@ apps/
   auth-service/
   concert-service/
   booking-service/
+  notification-service/
 libs/
 ```
 
