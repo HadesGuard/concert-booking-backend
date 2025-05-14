@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, UseGuards, Request, Delete, Param } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { JwtAuthGuard, RolesGuard, Roles } from '@app/common';
+import { JwtAuthGuard, RolesGuard, Roles, Role } from '@app/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('bookings')
@@ -12,7 +12,7 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  @Roles('user')
+  @Roles(Role.USER)
   @ApiOperation({ summary: 'Create a new booking' })
   @ApiResponse({ status: 201, description: 'Booking created successfully' })
   async create(@Body() createBookingDto: CreateBookingDto) {
@@ -20,7 +20,7 @@ export class BookingsController {
   }
 
   @Get()
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all bookings' })
   @ApiResponse({ status: 200, description: 'List all bookings' })
   async findAll() {
@@ -28,7 +28,7 @@ export class BookingsController {
   }
 
   @Delete(':concertId')
-  @Roles('user')
+  @Roles(Role.USER)
   @ApiOperation({ summary: 'Cancel a booking for a concert' })
   @ApiResponse({ status: 200, description: 'Booking cancelled and seat released.' })
   async cancelBooking(@Request() req, @Param('concertId') concertId: string) {

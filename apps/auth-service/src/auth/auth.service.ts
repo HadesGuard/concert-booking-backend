@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { UserDocument } from '../users/schemas/user.schema';
 import { TokenService } from './services/token.service';
+import { Role } from '@app/common';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
         id: user._id,
         email: user.email,
         name: user.name,
-        role: user.isAdmin ? 'admin' : 'user',
+        roles: user.roles,
       },
     };
   }
@@ -77,7 +78,7 @@ export class AuthService {
       id: user._id,
       email: user.email,
       name: user.name,
-      role: user.isAdmin ? 'admin' : 'user',
+      roles: user.roles,
     };
   }
 }

@@ -15,7 +15,7 @@ export class TokenService {
     const payload: JwtPayload = {
       email: user.email,
       sub: user._id,
-      role: user.isAdmin ? 'admin' : 'user',
+      roles: user.roles,
     };
 
     const accessToken = this.jwtService.sign(payload, {
