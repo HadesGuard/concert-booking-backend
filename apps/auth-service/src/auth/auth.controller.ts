@@ -19,7 +19,7 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 
 import { UserDocument } from '../users/schemas/user.schema';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@app/common';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @ApiTags('auth')
