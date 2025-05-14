@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Concert, ConcertDocument } from './schemas/concert.schema';
 import { CreateConcertDto } from './dto/create-concert.dto';
 import { UpdateConcertDto } from './dto/update-concert.dto';
+import { ListConcertsDto } from './dto/list-concerts.dto';
 import { SeatTypeService } from '../seat-types/seat-types.service';
 import { CacheService } from '../common/services/cache.service';
 import { SeatTypeEnum } from '../seat-types/enums/seat-type.enum';
@@ -36,20 +37,63 @@ export class ConcertsService {
     return createdConcert;
   }
 
-  async findAll(query: any = {}): Promise<ConcertDocument[]> {
-    const cacheKey = this.cacheService.generateKey(this.CACHE_PREFIX, 'list', JSON.stringify(query));
-    const cached = await this.cacheService.get<ConcertDocument[]>(cacheKey);
-    
+  async findAll(query: ListConcertsDto) {
+    const cacheKey = `concerts:${JSON.stringify(query)}`;
+    const cached = await this.cacheService.get(cacheKey);
     if (cached) {
       return cached;
     }
 
-    const concerts = await this.concertModel.find(query).exec();
-    await this.cacheService.set(cacheKey, concerts, this.CACHE_TTL);
-    return concerts;
+    const { search, startDate, endDate, isActive = true, page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { artist: { $regex: search, $options: 'i' } },
+        { venue: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    if (startDate) {
+      filter.startTime = { $gte: startDate };
+    }
+
+    if (endDate) {
+      filter.startTime = { ...filter.startTime, $lte: endDate };
+    }
+
+    if (isActive !== undefined) {
+      filter.isActive = isActive;
+    }
+
+    const [concerts, total] = await Promise.all([
+      this.concertModel
+        .find(filter)
+        .sort({ startTime: 1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.concertModel.countDocuments(filter),
+    ]);
+
+    const result = {
+      data: concerts,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+
+    await this.cacheService.set(cacheKey, result, 300); // Cache for 5 minutes
+    return result;
   }
 
-  async async async findOne(id: string): Promise<ConcertDocument> {
+  async findOne(id: string): Promise<ConcertDocument> {
     const cacheKey = this.cacheService.generateKey(this.CACHE_PREFIX, 'detail', id);
     const cached = await this.cacheService.get<ConcertDocument>(cacheKey);
 
