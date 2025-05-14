@@ -1,0 +1,74 @@
+# Concert Booking Platform Requirements
+
+## Problem Statement
+You're tasked with building a backend system for a concert ticket booking platform. Each concert offers multiple seat types (e.g., VIP, Regular, Standing), and each seat type has a limited number of tickets.
+
+Your system must support high concurrency while preventing overbooking and duplicate bookings.
+
+## Functional Requirements
+
+### User Management
+- [x] Users can register and log in
+
+### Concert Management
+- [x] API to list all available concerts
+- [ ] API to view concert details:
+  - [x] All seat types
+  - [ ] Remaining tickets for each seat type
+
+### Booking Management
+- [ ] Users can book one ticket per concert
+- [ ] Must choose a seat type
+- [ ] Cannot book if tickets are sold out
+- [ ] System must ensure:
+  - [ ] No duplicate bookings per user per concert
+  - [ ] No overbooking, even with high concurrency
+
+### Notification
+- [ ] Simulated email confirmation for bookings
+
+## Technical Requirements
+
+### Database
+- [x] MongoDB to store:
+  - [x] Concerts
+  - [x] Seat types
+  - [x] Users
+  - [x] Bookings
+
+### Caching & Concurrency
+- [ ] Redis to handle concurrency:
+  - [ ] Atomic Lua scripts or
+  - [ ] Redis-based locking (e.g., Redlock)
+
+### Architecture
+- [x] Microservices architecture:
+  - [x] Auth Service
+  - [x] Concert Service
+  - [x] Booking Service
+  - [x] Notification Service
+
+### Testing
+- [ ] Load test with 1,000 users booking concurrently
+  - [ ] Using k6, autocannon, or artillery
+
+### Deployment
+- [ ] Docker compose file for:
+  - [ ] Application
+  - [ ] MongoDB
+  - [ ] Redis
+
+### Documentation
+- [x] README.md with:
+  - [x] Setup instructions
+  - [x] Usage instructions
+- [ ] Postman Collection for API testing
+
+## Bonus Requirements
+- [ ] Cancel booking API (free up seats)
+- [ ] Automatically disable bookings once the concert starts
+
+## Implementation Status
+- [x] Completed
+- [ ] In Progress
+- [ ] Not Started 
