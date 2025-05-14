@@ -27,12 +27,28 @@ export class BookingsController {
     return this.bookingsService.findAll();
   }
 
+  @Get('my-bookings')
+  @Roles(Role.USER)
+  @ApiOperation({ summary: 'Get user bookings' })
+  @ApiResponse({ status: 200, description: 'List user bookings' })
+  async findMyBookings(@Request() req) {
+    const userId = req.user.id || req.user.sub;
+    return this.bookingsService.findByUser(userId);
+  }
+
+  @Get(':id')
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiOperation({ summary: 'Get booking by ID' })
+  @ApiResponse({ status: 200, description: 'Get booking details' })
+  async findOne(@Param('id') id: string) {
+    return this.bookingsService.findOne(id);
+  }
+
   @Delete(':concertId')
   @Roles(Role.USER)
   @ApiOperation({ summary: 'Cancel a booking for a concert' })
   @ApiResponse({ status: 200, description: 'Booking cancelled and seat released.' })
   async cancelBooking(@Request() req, @Param('concertId') concertId: string) {
-    // userId from JWT (req.user.id or req.user.sub)
     const userId = req.user.id || req.user.sub;
     return this.bookingsService.cancelBooking(userId, concertId);
   }
