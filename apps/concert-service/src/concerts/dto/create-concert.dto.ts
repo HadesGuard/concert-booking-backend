@@ -9,9 +9,14 @@ import {
   IsBoolean,
   IsOptional,
   Validate,
+  MinLength,
+  MaxLength,
+  IsEnum,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IsAfterDate } from '../validators/is-after-date.validator';
+import { SeatTypeEnum } from '../../seat-types/enums/seat-type.enum';
 
 export class CreateConcertDto {
   @ApiProperty({
@@ -20,6 +25,8 @@ export class CreateConcertDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(100)
   name: string;
 
   @ApiProperty({
@@ -28,6 +35,8 @@ export class CreateConcertDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MinLength(10)
+  @MaxLength(1000)
   description: string;
 
   @ApiProperty({
@@ -36,6 +45,8 @@ export class CreateConcertDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
   artist: string;
 
   @ApiProperty({
@@ -44,6 +55,8 @@ export class CreateConcertDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(200)
   venue: string;
 
   @ApiProperty({
@@ -76,8 +89,9 @@ export class CreateConcertDto {
     type: [String],
   })
   @IsArray()
-  @IsUUID('4', { each: true })
-  seatTypes: string[];
+  @IsEnum(SeatTypeEnum, { each: true })
+  @ArrayMinSize(1)
+  seatTypes: SeatTypeEnum[];
 
   @ApiProperty({
     description: 'Whether the concert is active',

@@ -6,6 +6,7 @@ import { CreateConcertDto } from './dto/create-concert.dto';
 import { UpdateConcertDto } from './dto/update-concert.dto';
 import { SeatTypeService } from '../seat-types/seat-types.service';
 import { CacheService } from '../common/services/cache.service';
+import { SeatTypeEnum } from '../seat-types/enums/seat-type.enum';
 
 @Injectable()
 export class ConcertsService {
@@ -18,8 +19,18 @@ export class ConcertsService {
     private readonly cacheService: CacheService,
   ) {}
 
+  private validateConcertDates(startTime: Date, endTime: Date): void {
+    if (startTime <= new Date()) {
+      throw new BadRequestException('Start time must be in the future');
+    }
+
+    if (endTime <= startTime) {
+      throw new BadRequestException('End time must be after start time');
+    }
+  }
+
   async create(createConcertDto: CreateConcertDto): Promise<ConcertDocument> {
-    await this.validateSeatTypes(createConcertDto.seatTypes);
+    this.validateConcertDates(createConcertDto.startTime, createConcertDto.endTime);
     const createdConcert = await this.concertModel.create(createConcertDto);
     await this.invalidateCache();
     return createdConcert;
@@ -38,7 +49,7 @@ export class ConcertsService {
     return concerts;
   }
 
-  async findOne(id: string): Promise<ConcertDocument> {
+  async async async findOne(id: string): Promise<ConcertDocument> {
     const cacheKey = this.cacheService.generateKey(this.CACHE_PREFIX, 'detail', id);
     const cached = await this.cacheService.get<ConcertDocument>(cacheKey);
 
@@ -56,8 +67,11 @@ export class ConcertsService {
   }
 
   async update(id: string, updateConcertDto: UpdateConcertDto): Promise<ConcertDocument> {
-    if (updateConcertDto.seatTypes) {
-      await this.validateSeatTypes(updateConcertDto.seatTypes);
+    if (updateConcertDto.startTime || updateConcertDto.endTime) {
+      const concert = await this.concertModel.findById(id);
+      const startTime = updateConcertDto.startTime || concert.startTime;
+      const endTime = updateConcertDto.endTime || concert.endTime;
+      this.validateConcertDates(startTime, endTime);
     }
 
     const updatedConcert = await this.concertModel
@@ -104,7 +118,7 @@ export class ConcertsService {
     return result;
   }
 
-  async checkSeatAvailability(concertId: string, seatTypeId: string): Promise<boolean> {
+  async checkSeatAvailability(concertId: string, seatTypeId: SeatTypeEnum): Promise<boolean> {
     const concert = await this.findOne(concertId);
     const seatType = await this.seatTypeService.findOne(seatTypeId);
 
@@ -160,22 +174,6 @@ export class ConcertsService {
 
     await this.cacheService.set(cacheKey, concerts, this.CACHE_TTL);
     return concerts;
-  }
-
-  private async validateSeatTypes(seatTypeIds: string[]): Promise<void> {
-    const seatTypes = await Promise.all(
-      seatTypeIds.map(id => this.seatTypeService.findOne(id))
-    );
-
-    const invalidIds = seatTypeIds.filter(
-      (id, index) => !seatTypes[index],
-    );
-
-    if (invalidIds.length > 0) {
-      throw new BadRequestException(
-        `Invalid seat type IDs: ${invalidIds.join(', ')}`,
-      );
-    }
   }
 
   private async invalidateCache(id?: string): Promise<void> {

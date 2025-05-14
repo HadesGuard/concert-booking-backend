@@ -8,6 +8,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsString()
+  @MinLength(2)
   name!: string;
 
   @ApiProperty({

@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -16,6 +17,16 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
+  private validatePassword(password: string): void {
+    // Password must contain at least one number and one letter
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    if (!passwordRegex.test(password)) {
+      throw new BadRequestException(
+        'Password must contain at least one letter and one number',
+      );
+    }
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
@@ -24,6 +35,9 @@ export class UsersService {
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
+
+    // Validate password before hashing
+    this.validatePassword(password);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -59,6 +73,7 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     if (updateUserDto.password) {
+      this.validatePassword(updateUserDto.password);
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
