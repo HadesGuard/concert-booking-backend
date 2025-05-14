@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { BaseSchema } from '@app/common';
+import { Role } from '@app/common';
 
 export type UserDocument = User & Document;
 
@@ -15,8 +16,8 @@ export class User extends BaseSchema {
   @Prop({ required: true })
   password!: string;
 
-  @Prop({ default: false })
-  isAdmin!: boolean;
+  @Prop({ type: [String], enum: Object.values(Role), default: [Role.USER] })
+  roles!: Role[];
 
   @Prop({ type: String, default: null })
   refreshToken?: string | null;
