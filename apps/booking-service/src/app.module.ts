@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BookingsModule } from './bookings/bookings.module';
 import * as path from 'path';
 
 @Module({
@@ -10,8 +10,14 @@ import * as path from 'path';
       isGlobal: true,
       envFilePath: path.join(process.cwd(), 'apps/booking-service/.env'),
     }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URI') || 'mongodb://localhost:27017/bookings',
+      }),
+    }),
+    BookingsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
