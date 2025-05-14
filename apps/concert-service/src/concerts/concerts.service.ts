@@ -8,17 +8,25 @@ import { ListConcertsDto } from './dto/list-concerts.dto';
 import { SeatTypeService } from '../seat-types/seat-types.service';
 import { CacheService } from '../common/services/cache.service';
 import { SeatTypeEnum } from '../seat-types/enums/seat-type.enum';
+import { BookingStatus } from '@app/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { ConcertWithSeatTypes } from './interfaces/concert-with-seats.interface';
 
 @Injectable()
 export class ConcertsService {
   private readonly CACHE_TTL = 3600; // 1 hour
   private readonly CACHE_PREFIX = 'concert';
+  private readonly bookingServiceUrl: string;
 
   constructor(
     @InjectModel(Concert.name) private concertModel: Model<ConcertDocument>,
     private readonly seatTypeService: SeatTypeService,
     private readonly cacheService: CacheService,
-  ) {}
+    private readonly httpService: HttpService,
+  ) {
+    this.bookingServiceUrl = process.env.BOOKING_SERVICE_URL || 'http://localhost:3002';
+  }
 
   private validateConcertDates(startTime: Date, endTime: Date): void {
     if (startTime <= new Date()) {
@@ -138,9 +146,9 @@ export class ConcertsService {
     await this.invalidateCache(id);
   }
 
-  async getConcertWithSeatTypes(id: string): Promise<any> {
+  async getConcertWithSeatTypes(id: string): Promise<ConcertWithSeatTypes> {
     const cacheKey = this.cacheService.generateKey(this.CACHE_PREFIX, 'with-seats', id);
-    const cached = await this.cacheService.get<any>(cacheKey);
+    const cached = await this.cacheService.get<ConcertWithSeatTypes>(cacheKey);
 
     if (cached) {
       return cached;
@@ -148,12 +156,31 @@ export class ConcertsService {
 
     const concert = await this.findOne(id);
     const seatTypes = await Promise.all(
-      concert.seatTypes.map(seatTypeId => 
-        this.seatTypeService.findOne(seatTypeId)
-      )
+      concert.seatTypes.map(async (seatTypeId) => {
+        const seatType = await this.seatTypeService.findOne(seatTypeId);
+        const { data: bookings } = await firstValueFrom(
+          this.httpService.get(`${this.bookingServiceUrl}/bookings/count`, {
+            params: {
+              concertId: id,
+              seatTypeId: seatTypeId,
+              status: BookingStatus.ACTIVE,
+            },
+          })
+        );
+        
+        return {
+          _id: seatType._id,
+          name: seatType.name,
+          description: seatType.description,
+          price: seatType.price,
+          capacity: seatType.capacity,
+          isActive: seatType.isActive,
+          remainingTickets: seatType.capacity - bookings.count,
+        };
+      })
     );
 
-    const result = {
+    const result: ConcertWithSeatTypes = {
       ...concert.toObject(),
       seatTypes,
     };
