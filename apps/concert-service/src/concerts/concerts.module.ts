@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CacheModule } from '@nestjs/cache-manager';
+import { HttpModule } from '@nestjs/axios';
 import { Concert, ConcertSchema } from './schemas/concert.schema';
 import { ConcertsService } from './concerts.service';
 import { ConcertsController } from './concerts.controller';
@@ -16,6 +17,7 @@ import { CacheService } from '../common/services/cache.service';
       ttl: 3600, // 1 hour
       max: 100, // maximum number of items in cache
     }),
+    HttpModule,
     SeatTypeModule,
   ],
   controllers: [ConcertsController],
