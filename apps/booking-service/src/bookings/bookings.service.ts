@@ -60,7 +60,31 @@ export class BookingsService {
 
     // Nếu thành công, tạo booking
     const booking = new this.bookingModel(createBookingDto);
-    return booking.save();
+    const savedBooking = await booking.save();
+
+    // Fetch user email from auth-service
+    let userEmail = null;
+    try {
+      const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3000';
+      const userRes = await axios.get(`${authServiceUrl}/users/${createBookingDto.userId}`);
+      userEmail = userRes.data.email;
+    } catch (err) {
+      console.warn('[BOOKING] Could not fetch user email from auth-service:', err?.response?.data || err.message);
+    }
+
+    // Publish booking.created event to Redis
+    await this.redisClient.publish('booking-events', JSON.stringify({
+      type: 'booking.created',
+      data: {
+        bookingId: savedBooking._id,
+        userId: savedBooking.userId,
+        concertId: savedBooking.concertId,
+        seatTypeId: savedBooking.seatTypeId,
+        email: userEmail,
+      }
+    }));
+
+    return savedBooking;
   }
 
   async findAll(): Promise<Booking[]> {

@@ -24,10 +24,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: auth-service
-    environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/auth
-      - PORT=3001
+    env_file:
+      - apps/auth-service/.env
     ports:
       - '3001:3001'
     command: node dist/apps/auth-service/main.js
@@ -39,10 +37,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: concert-service
-    environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/concert
-      - PORT=3002
+    env_file:
+      - apps/concert-service/.env
     ports:
       - '3002:3002'
     command: node dist/apps/concert-service/main.js
@@ -54,14 +50,25 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: booking-service
-    environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/booking
-      - REDIS_HOST=redis
-      - PORT=3003
+    env_file:
+      - apps/booking-service/.env
     ports:
       - '3003:3003'
     command: node dist/apps/booking-service/main.js
+    depends_on:
+      - mongo
+      - redis
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notification-service
+    env_file:
+      - apps/notification-service/.env
+    ports:
+      - '3004:3004'
+    command: node dist/apps/notification-service/main.js
     depends_on:
       - mongo
       - redis
