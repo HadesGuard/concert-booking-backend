@@ -12,9 +12,9 @@ Your system must support high concurrency while preventing overbooking and dupli
 
 ### Concert Management
 - [x] API to list all available concerts
-- [ ] API to view concert details:
+- [x] API to view concert details:
   - [x] All seat types
-  - [ ] Remaining tickets for each seat type
+  - [x] Remaining tickets for each seat type
 
 ### Booking Management
 - [ ] Users can book one ticket per concert
