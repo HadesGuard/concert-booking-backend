@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
-import { CreateBookingDto } from './dto/create-booking.dto';
-import { BookingStatus } from './schemas/booking.schema';
+import { CreateBookingDto } from '../../common/dto/create-booking.dto';
+import { BookingStatus } from '../../common/enums/booking.enum';
 
 describe('BookingsController', () => {
   let controller: BookingsController;

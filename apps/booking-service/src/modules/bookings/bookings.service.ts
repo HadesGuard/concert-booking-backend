@@ -1,14 +1,15 @@
 import { Injectable, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Booking, BookingStatus } from './schemas/booking.schema';
-import { CreateBookingDto } from './dto/create-booking.dto';
+import { Booking } from '../../common/schemas/booking.schema';
+import { CreateBookingDto } from '../../common/dto/create-booking.dto';
 import { REDIS_CLIENT } from '../redis/redis.provider';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import { HttpClientService } from '../common/services/http-client.service';
 import axios, { AxiosError } from 'axios';
 import * as jwt from 'jsonwebtoken';
+import { HttpClientService } from '../../common/services/http-client.service';
+import { BookingStatus } from '../../common/enums/booking.enum';
 
 @Injectable()
 export class BookingsService {
@@ -23,10 +24,10 @@ export class BookingsService {
     private readonly configService: ConfigService,
     private readonly httpClient: HttpClientService,
   ) {
-    this.concertServiceUrl = process.env.CONCERT_SERVICE_URL || 'http://localhost:3002/api/v1';
-    this.authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001/api/v1';
-    this.requestTimeout = parseInt(process.env.REQUEST_TIMEOUT || '5000', 10);
-    this.jwtSecret = this.configService.get<string>('JWT_SECRET') || 'your-secret-key';
+    this.concertServiceUrl = this.configService.get<string>('booking.service.concertServiceUrl');
+    this.authServiceUrl = this.configService.get<string>('booking.service.authServiceUrl');
+    this.requestTimeout = this.configService.get<number>('booking.service.requestTimeout');
+    this.jwtSecret = this.configService.get<string>('booking.jwt.secret');
   }
 
   private async fetchWithTimeout(url: string, timeout?: number) {
