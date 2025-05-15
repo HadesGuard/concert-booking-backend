@@ -22,12 +22,13 @@ services:
   auth-service:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/auth-service/Dockerfile
     container_name: auth-service
     env_file:
       - apps/auth-service/.env
     ports:
       - '3001:3001'
+    working_dir: /app
     command: node dist/apps/auth-service/main.js
     depends_on:
       - mongo
@@ -35,25 +36,28 @@ services:
   concert-service:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/concert-service/Dockerfile
     container_name: concert-service
     env_file:
       - apps/concert-service/.env
     ports:
       - '3002:3002'
+    working_dir: /app
     command: node dist/apps/concert-service/main.js
     depends_on:
       - mongo
+      - redis
 
   booking-service:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/booking-service/Dockerfile
     container_name: booking-service
     env_file:
       - apps/booking-service/.env
     ports:
       - '3003:3003'
+    working_dir: /app
     command: node dist/apps/booking-service/main.js
     depends_on:
       - mongo
@@ -62,12 +66,13 @@ services:
   notification-service:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/notification-service/Dockerfile
     container_name: notification-service
     env_file:
       - apps/notification-service/.env
     ports:
       - '3004:3004'
+    working_dir: /app
     command: node dist/apps/notification-service/main.js
     depends_on:
       - mongo

@@ -18,10 +18,6 @@ export class CacheService {
     await this.cacheManager.del(key);
   }
 
-  async reset(): Promise<void> {
-    await this.cacheManager.reset();
-  }
-
   generateKey(prefix: string, ...args: any[]): string {
     return `${prefix}:${args.join(':')}`;
   }

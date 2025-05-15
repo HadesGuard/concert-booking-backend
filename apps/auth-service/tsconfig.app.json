@@ -4,15 +4,13 @@
     "declaration": false,
     "outDir": "../../dist/apps/auth-service",
     "paths": {
-      "@app/schemas/*": ["src/*/schemas"],
-      "@app/auth-users/*": ["apps/auth-service/src/users/*"]
+      "@app/common": ["../../libs/common/src"],
+      "@app/common/*": ["../../libs/common/src/*"]
     }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"],
   "references": [
-    {
-      "path": "../../libs/common"
-    }
+    { "path": "../../libs/common" }
   ]
-} 
+}
