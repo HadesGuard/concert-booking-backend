@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { BaseSchema } from '../../concerts/schemas/base.schema';
+import { BaseSchema } from './base.schema';
 
 export type SeatTypeDocument = SeatType & Document;
 

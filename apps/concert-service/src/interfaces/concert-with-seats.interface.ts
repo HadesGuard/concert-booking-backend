@@ -1,5 +1,5 @@
 import { Concert } from '../schemas/concert.schema';
-import { SeatType } from '../../seat-types/schemas/seat-type.schema';
+import { SeatType } from '../schemas/seat-type.schema';
 
 export interface SeatTypeWithAvailability extends Omit<SeatType, 'capacity'> {
   capacity: number;
