@@ -1,0 +1,293 @@
+{
+  "info": {
+    "_postman_id": "concert-booking-api-collection",
+    "name": "Concert Booking API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for testing the Concert Booking backend."
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_host}}/api/v1/auth/register",
+              "host": ["{{auth_host}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_host}}/api/v1/auth/login",
+              "host": ["{{auth_host}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_host}}/api/v1/auth/refresh",
+              "host": ["{{auth_host}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{auth_host}}/api/v1/auth/logout",
+              "host": ["{{auth_host}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{auth_host}}/api/v1/auth/profile",
+              "host": ["{{auth_host}}"],
+              "path": ["api", "v1", "auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Concerts",
+      "item": [
+        {
+          "name": "List Concerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts"]
+            }
+          }
+        },
+        {
+          "name": "Get Concert",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts/{{concertId}}",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts", "{{concertId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Concert",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Concert\",\n  \"date\": \"2024-12-31T20:00:00Z\",\n  \"venue\": \"Sample Venue\"\n}"
+            },
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seat Types",
+      "item": [
+        {
+          "name": "List Seat Types by Concert",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts/{{concertId}}/seat-types",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts", "{{concertId}}", "seat-types"]
+            }
+          }
+        },
+        {
+          "name": "Get Seat Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts/{{concertId}}/seat-types/{{seatTypeId}}",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts", "{{concertId}}", "seat-types", "{{seatTypeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Seat Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"VIP\",\n  \"description\": \"VIP Seat\",\n  \"price\": 100,\n  \"capacity\": 100\n}"
+            },
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts/{{concertId}}/seat-types",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts", "{{concertId}}", "seat-types"]
+            }
+          }
+        },
+        {
+          "name": "Get Seat Type by ID (alt)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{concert_host}}/api/v1/concerts/{{concertId}}/seat-types/{{seatTypeId}}",
+              "host": ["{{concert_host}}"],
+              "path": ["api", "v1", "concerts", "{{concertId}}", "seat-types", "{{seatTypeId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"concertId\": \"{{concertId}}\",\n  \"seatTypeId\": \"{{seatTypeId}}\",\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{booking_host}}/api/v1/bookings",
+              "host": ["{{booking_host}}"],
+              "path": ["api", "v1", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "List My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{booking_host}}/api/v1/bookings/my-bookings",
+              "host": ["{{booking_host}}"],
+              "path": ["api", "v1", "bookings", "my-bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{booking_host}}/api/v1/bookings/{{bookingId}}",
+              "host": ["{{booking_host}}"],
+              "path": ["api", "v1", "bookings", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": {
+              "raw": "{{booking_host}}/api/v1/bookings/{{concertId}}",
+              "host": ["{{booking_host}}"],
+              "path": ["api", "v1", "bookings", "{{concertId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "auth_host", "value": "http://localhost:3001" },
+    { "key": "concert_host", "value": "http://localhost:3002" },
+    { "key": "booking_host", "value": "http://localhost:3003" },
+    { "key": "admin_token", "value": "" },
+    { "key": "user_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "concertId", "value": "" },
+    { "key": "seatTypeId", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "bookingId", "value": "" }
+  ]
+} 

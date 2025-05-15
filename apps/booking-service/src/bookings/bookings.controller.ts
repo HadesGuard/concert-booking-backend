@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Delete, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Delete, Param, HttpCode } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -18,6 +18,7 @@ export class BookingsController {
   @Roles(Role.USER)
   @ApiOperation({ summary: 'Create a new booking' })
   @ApiResponse({ status: 201, description: 'Booking created successfully' })
+  @HttpCode(201)
   async create(@Body() createBookingDto: CreateBookingDto) {
     return this.bookingsService.create(createBookingDto);
   }
