@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Concert, ConcertDocument } from './schemas/concert.schema';
@@ -12,20 +12,92 @@ import { BookingStatus } from '@app/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { ConcertWithSeatTypes } from './interfaces/concert-with-seats.interface';
+import { Cron } from '@nestjs/schedule';
+import { Inject } from '@nestjs/common';
+import { REDIS_CLIENT } from '../redis/redis.provider';
+import Redis from 'ioredis';
 
 @Injectable()
-export class ConcertsService {
+export class ConcertsService implements OnModuleInit {
   private readonly CACHE_TTL = 3600; // 1 hour
   private readonly CACHE_PREFIX = 'concert';
   private readonly bookingServiceUrl: string;
+  private readonly DISABLE_SCHEDULE_KEY = 'concert:disable:schedule';
 
   constructor(
     @InjectModel(Concert.name) private concertModel: Model<ConcertDocument>,
     private readonly seatTypeService: SeatTypeService,
     private readonly cacheService: CacheService,
     private readonly httpService: HttpService,
+    @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
   ) {
     this.bookingServiceUrl = process.env.BOOKING_SERVICE_URL || 'http://localhost:3002';
+  }
+
+  async onModuleInit() {
+    // Recover disable schedule from MongoDB on service startup
+    await this.recoverDisableSchedule();
+  }
+
+  private async recoverDisableSchedule() {
+    try {
+      // Get all active concerts that haven't started yet
+      const now = new Date();
+      const activeConcerts = await this.concertModel.find({
+        isActive: true,
+        startTime: { $gt: now }
+      }).exec();
+
+      // Clear existing schedule
+      await this.redisClient.del(this.DISABLE_SCHEDULE_KEY);
+
+      // Reschedule all active concerts
+      if (activeConcerts.length > 0) {
+        const scheduleData = activeConcerts.map(concert => [
+          concert.startTime.getTime(),
+          concert._id.toString()
+        ]).flat();
+
+        await this.redisClient.zadd(this.DISABLE_SCHEDULE_KEY, ...scheduleData);
+      }
+
+      console.log(`[CONCERT] Recovered ${activeConcerts.length} concerts in disable schedule`);
+    } catch (error) {
+      console.error('[CONCERT] Failed to recover disable schedule:', error);
+    }
+  }
+
+  @Cron('* * * * *')
+  async handleConcertDisable() {
+    const now = Date.now();
+    
+    // Get all concerts that need to be disabled
+    const concertsToDisable = await this.redisClient.zrangebyscore(
+      this.DISABLE_SCHEDULE_KEY,
+      0,
+      now
+    );
+    
+    if (concertsToDisable.length > 0) {
+      // Disable all concerts in one update
+      const result = await this.concertModel.updateMany(
+        {
+          _id: { $in: concertsToDisable },
+          isActive: true
+        },
+        {
+          $set: { isActive: false }
+        }
+      ).exec();
+
+      if (result.modifiedCount > 0) {
+        // Remove from schedule
+        await this.redisClient.zrem(this.DISABLE_SCHEDULE_KEY, ...concertsToDisable);
+        
+        // Invalidate cache
+        await this.invalidateCache();
+      }
+    }
   }
 
   private validateConcertDates(startTime: Date, endTime: Date): void {
@@ -41,6 +113,14 @@ export class ConcertsService {
   async create(createConcertDto: CreateConcertDto): Promise<ConcertDocument> {
     this.validateConcertDates(createConcertDto.startTime, createConcertDto.endTime);
     const createdConcert = await this.concertModel.create(createConcertDto);
+    
+    // Schedule disable at concert start time
+    await this.redisClient.zadd(
+      this.DISABLE_SCHEDULE_KEY,
+      createdConcert.startTime.getTime(),
+      createdConcert._id.toString()
+    );
+    
     await this.invalidateCache();
     return createdConcert;
   }
@@ -124,6 +204,16 @@ export class ConcertsService {
       const startTime = updateConcertDto.startTime || concert.startTime;
       const endTime = updateConcertDto.endTime || concert.endTime;
       this.validateConcertDates(startTime, endTime);
+
+      // Update disable schedule if start time changed
+      if (updateConcertDto.startTime) {
+        await this.redisClient.zrem(this.DISABLE_SCHEDULE_KEY, id);
+        await this.redisClient.zadd(
+          this.DISABLE_SCHEDULE_KEY,
+          updateConcertDto.startTime.getTime(),
+          id
+        );
+      }
     }
 
     const updatedConcert = await this.concertModel
@@ -143,6 +233,10 @@ export class ConcertsService {
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Concert with ID ${id} not found`);
     }
+    
+    // Remove from disable schedule
+    await this.redisClient.zrem(this.DISABLE_SCHEDULE_KEY, id);
+    
     await this.invalidateCache(id);
   }
 

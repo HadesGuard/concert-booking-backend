@@ -16,7 +16,7 @@ export class BookingsService {
   ) {}
 
   async create(createBookingDto: CreateBookingDto): Promise<Booking> {
-    // Kiểm tra duplicate booking
+    // Check for duplicate booking
     const existing = await this.bookingModel.findOne({
       userId: createBookingDto.userId,
       concertId: createBookingDto.concertId,
@@ -26,7 +26,7 @@ export class BookingsService {
       throw new BadRequestException('User has already booked this concert');
     }
 
-    // Gọi concert-service để kiểm tra seatType còn vé không
+    // Call concert-service to check seat availability
     const concertServiceUrl = process.env.CONCERT_SERVICE_URL || 'http://localhost:3001';
     const concertId = createBookingDto.concertId;
     const seatTypeId = createBookingDto.seatTypeId;
@@ -37,6 +37,12 @@ export class BookingsService {
     } catch (err) {
       throw new BadRequestException('Concert not found or concert-service unavailable');
     }
+
+    // Check if concert is active
+    if (!concert.isActive) {
+      throw new BadRequestException('This concert is no longer available for booking');
+    }
+
     const seatType = concert.seatTypes.find((s) => s.id === seatTypeId || s._id === seatTypeId);
     if (!seatType) {
       throw new BadRequestException('Seat type not found');
@@ -45,7 +51,7 @@ export class BookingsService {
       throw new BadRequestException('No tickets left for this seat type');
     }
 
-    // Redis Lua script để giảm số vé atomic
+    // Redis Lua script for atomic seat reduction
     const redisKey = `concert:${concertId}:seatType:${seatTypeId}:available`;
     const luaScript = `
       local available = tonumber(redis.call('get', KEYS[1]))
@@ -60,7 +66,7 @@ export class BookingsService {
       throw new BadRequestException('No tickets left for this seat type (atomic check)');
     }
 
-    // Nếu thành công, tạo booking
+    // If successful, create booking
     const booking = new this.bookingModel({
       ...createBookingDto,
       status: BookingStatus.ACTIVE,

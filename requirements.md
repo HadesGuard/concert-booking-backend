@@ -17,15 +17,16 @@ Your system must support high concurrency while preventing overbooking and dupli
   - [x] Remaining tickets for each seat type
 
 ### Booking Management
-- [ ] Users can book one ticket per concert
-- [ ] Must choose a seat type
-- [ ] Cannot book if tickets are sold out
-- [ ] System must ensure:
-  - [ ] No duplicate bookings per user per concert
-  - [ ] No overbooking, even with high concurrency
+- [x] Users can book one ticket per concert
+- [x] Must choose a seat type
+- [x] Cannot book if tickets are sold out
+- [x] System must ensure:
+  - [x] No duplicate bookings per user per concert
+  - [x] No overbooking, even with high concurrency
+  - [x] Bookings are automatically disabled when concert starts
 
 ### Notification
-- [ ] Simulated email confirmation for bookings
+- [x] Simulated email confirmation for bookings
 
 ## Technical Requirements
 
@@ -37,9 +38,8 @@ Your system must support high concurrency while preventing overbooking and dupli
   - [x] Bookings
 
 ### Caching & Concurrency
-- [ ] Redis to handle concurrency:
-  - [ ] Atomic Lua scripts or
-  - [ ] Redis-based locking (e.g., Redlock)
+- [x] Redis to handle concurrency:
+  - [x] Atomic Lua scripts
 
 ### Architecture
 - [x] Microservices architecture:
@@ -53,10 +53,10 @@ Your system must support high concurrency while preventing overbooking and dupli
   - [ ] Using k6, autocannon, or artillery
 
 ### Deployment
-- [ ] Docker compose file for:
-  - [ ] Application
-  - [ ] MongoDB
-  - [ ] Redis
+- [x] Docker compose file for:
+  - [x] Application
+  - [x] MongoDB
+  - [x] Redis
 
 ### Documentation
 - [x] README.md with:
@@ -65,8 +65,8 @@ Your system must support high concurrency while preventing overbooking and dupli
 - [ ] Postman Collection for API testing
 
 ## Bonus Requirements
-- [ ] Cancel booking API (free up seats)
-- [ ] Automatically disable bookings once the concert starts
+- [x] Cancel booking API (free up seats)
+- [x] Automatically disable bookings when concert starts
 
 ## Implementation Status
 - [x] Completed
