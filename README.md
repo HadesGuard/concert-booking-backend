@@ -74,19 +74,6 @@ libs/
 - Example files: `apps/auth-service/.env.example`, etc.
 - Copy `.env.example` to `.env` and update values as needed.
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
 ## API Testing with Postman
 
 A ready-to-use Postman Collection is provided for API testing: `Concert Booking API.postman_collection.json`.
