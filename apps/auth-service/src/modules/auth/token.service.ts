@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserDocument } from '../../users/schemas/user.schema';
 import { JwtPayload } from '../../interfaces/jwt-payload.interface';
+import { UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class TokenService {

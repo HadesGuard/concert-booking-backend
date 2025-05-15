@@ -19,8 +19,8 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { UserDocument } from '../users/schemas/user.schema';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
