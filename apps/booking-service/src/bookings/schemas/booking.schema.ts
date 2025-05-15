@@ -40,3 +40,4 @@ export const BookingSchema = SchemaFactory.createForClass(Booking);
 // Compound indexes
 BookingSchema.index({ userId: 1, concertId: 1, status: 1 });
 BookingSchema.index({ concertId: 1, seatTypeId: 1, status: 1 }); 
+BookingSchema.index({ userId: 1, concertId: 1 }, { unique: true });
