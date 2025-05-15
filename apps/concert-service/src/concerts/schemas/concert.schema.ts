@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { BaseSchema } from '@app/common';
-import { SeatTypeEnum } from '../../seat-types/enums/seat-type.enum';
+import { BaseSchema } from './base.schema';
 
 export type ConcertDocument = Concert & Document;
 
@@ -39,10 +38,10 @@ export class Concert extends BaseSchema {
   imageUrl: string;
 
   @Prop({ 
-    type: [{ type: String, enum: Object.values(SeatTypeEnum) }],
+    type: [String],
     required: true,
   })
-  seatTypes: SeatTypeEnum[];
+  seatTypes: string[];
 
   @Prop({ default: true })
   isActive: boolean;

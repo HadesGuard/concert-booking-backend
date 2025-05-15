@@ -1,44 +1,37 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { BaseSchema } from '@app/common';
-import { Role } from '@app/common';
+import { BaseSchema } from './base.schema';
+import { Role } from '../../enums/role.enum';
 
 export type UserDocument = User & Document;
 
-@Schema({ 
+@Schema({
   timestamps: true,
   toJSON: {
     transform: (_, ret) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
       delete ret.password;
-      delete ret.refreshToken;
       return ret;
     },
   },
 })
 export class User extends BaseSchema {
-  @Prop({ required: true, trim: true, minlength: 2, maxlength: 50 })
-  name!: string;
+  @Prop({ required: true })
+  name: string;
 
-  @Prop({ 
-    required: true, 
-    unique: true, 
-    trim: true,
-    lowercase: true,
-  })
-  email!: string;
+  @Prop({ required: true, unique: true })
+  email: string;
 
   @Prop({ required: true })
-  password!: string;
+  password: string;
 
-  @Prop({ 
-    type: [String], 
-    enum: Object.values(Role), 
-    default: [Role.USER],
-  })
-  roles!: Role[];
+  @Prop({ type: [String], enum: Object.values(Role), default: [Role.USER] })
+  roles: Role[];
 
-  @Prop({ type: String, default: null, select: false })
-  refreshToken?: string | null;
+  @Prop()
+  refreshToken?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

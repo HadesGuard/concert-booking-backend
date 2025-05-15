@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SeatType, SeatTypeSchema } from './schemas/seat-type.schema';
 import { SeatTypeService } from './seat-types.service';
+import { redisProvider } from '../redis/redis.provider';
 
 @Module({
   imports: [
@@ -9,7 +10,7 @@ import { SeatTypeService } from './seat-types.service';
       { name: SeatType.name, schema: SeatTypeSchema },
     ]),
   ],
-  providers: [SeatTypeService],
+  providers: [SeatTypeService, redisProvider],
   exports: [SeatTypeService],
 })
 export class SeatTypeModule {} 

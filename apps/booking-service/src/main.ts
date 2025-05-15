@@ -21,7 +21,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   const port = config.get('PORT') || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`Booking service is running on: http://localhost:${port}`);
   console.log(`Swagger docs available at: http://localhost:${port}/docs`);
 }

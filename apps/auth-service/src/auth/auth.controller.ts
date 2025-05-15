@@ -5,6 +5,7 @@ import {
   UseGuards,
   Get,
   Request,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,9 +18,8 @@ import { LoginDto } from './dto/login.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
-
 import { UserDocument } from '../users/schemas/user.schema';
-import { JwtAuthGuard } from '@app/common';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @ApiTags('auth')
@@ -76,8 +76,10 @@ export class AuthController {
       },
     },
   })
+  @HttpCode(200)
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(@Body() loginDto: LoginDto) {
+    console.log('loginDto', loginDto);
     return this.authService.login(loginDto);
   }
 

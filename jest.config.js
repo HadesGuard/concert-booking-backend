@@ -8,9 +8,5 @@ module.exports = {
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: './coverage',
   testEnvironment: 'node',
-  roots: ['<rootDir>/apps/', '<rootDir>/libs/'],
-  moduleNameMapper: {
-    '^@app/common$': '<rootDir>/libs/common/src',
-    '^@app/common/(.*)$': '<rootDir>/libs/common/src/$1',
-  },
+  roots: ['<rootDir>/apps/']
 };
