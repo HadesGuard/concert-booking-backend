@@ -25,7 +25,7 @@ export class AuthService {
     const tokens = this.tokenService.generateTokens(user);
 
     // Save refresh token to user
-    await this.usersService.update(user._id, {
+    await this.usersService.update(user._id.toString(), {
       refreshToken: tokens.refreshToken,
     });
 
@@ -33,7 +33,7 @@ export class AuthService {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         email: user.email,
         name: user.name,
         roles: user.roles,
@@ -55,7 +55,7 @@ export class AuthService {
       }
 
       const tokens = this.tokenService.generateTokens(user);
-      await this.usersService.update(user._id, {
+      await this.usersService.update(user._id.toString(), {
         refreshToken: tokens.refreshToken,
       });
 
@@ -69,13 +69,13 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await this.usersService.update(userId, { refreshToken: null });
+    await this.usersService.update(userId.toString(), { refreshToken: null });
     return { message: 'Logged out successfully' };
   }
 
   async getProfile(user: UserDocument) {
     return {
-      id: user._id,
+      id: user._id.toString(),
       email: user.email,
       name: user.name,
       roles: user.roles,

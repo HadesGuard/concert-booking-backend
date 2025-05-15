@@ -20,7 +20,7 @@ export class SeatTypeService {
     return this.seatTypeModel.find().exec();
   }
 
-  async findOne(id: string): Promise<SeatType> {
+  async findOne(id: string): Promise<SeatTypeDocument> {
     const seatType = await this.seatTypeModel.findById(id).exec();
     if (!seatType) {
       throw new NotFoundException(`Seat type with ID ${id} not found`);

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BookingsModule } from './bookings/bookings.module';
+import { AuthModule } from './auth/auth.module';
 import * as path from 'path';
 
 @Module({
@@ -17,6 +18,7 @@ import * as path from 'path';
         uri: configService.get<string>('MONGO_URI') || 'mongodb://localhost:27017/bookings',
       }),
     }),
+    AuthModule,
     BookingsModule,
   ],
 })
