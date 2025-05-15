@@ -1,12 +1,15 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
-const BASE_URL = 'http://localhost:3000/api/v1';
+// Service URLs
+const AUTH_URL = 'http://localhost:3001/api/v1';
+const CONCERT_URL = 'http://localhost:3002/api/v1';
+const BOOKING_URL = 'http://localhost:3003/api/v1';
 
 // Setup function to create test data
 export function setup() {
   // 1. Create admin user if not exists
-  const adminLoginRes = http.post(`${BASE_URL}/auth/login`, {
+  const adminLoginRes = http.post(`${AUTH_URL}/auth/login`, {
     email: 'admin@example.com',
     password: 'admin123'
   });
@@ -14,7 +17,7 @@ export function setup() {
   let adminToken;
   if (adminLoginRes.status === 401) {
     // Create admin user
-    const createAdminRes = http.post(`${BASE_URL}/auth/register`, {
+    const createAdminRes = http.post(`${AUTH_URL}/auth/register`, {
       name: 'Admin User',
       email: 'admin@example.com',
       password: 'admin123',
@@ -41,7 +44,7 @@ export function setup() {
   };
 
   const concertRes = http.post(
-    `${BASE_URL}/concerts`,
+    `${CONCERT_URL}/concerts`,
     JSON.stringify(concertPayload),
     {
       headers: {
@@ -66,7 +69,7 @@ export function setup() {
 
   for (const seatType of seatTypes) {
     const seatTypeRes = http.post(
-      `${BASE_URL}/concerts/${concertId}/seat-types`,
+      `${CONCERT_URL}/concerts/${concertId}/seat-types`,
       JSON.stringify(seatType),
       {
         headers: {
@@ -90,7 +93,7 @@ export function setup() {
       password: 'password123'
     };
 
-    const userRes = http.post(`${BASE_URL}/auth/register`, userPayload);
+    const userRes = http.post(`${AUTH_URL}/auth/register`, userPayload);
     check(userRes, {
       'user created': (r) => r.status === 201,
     });

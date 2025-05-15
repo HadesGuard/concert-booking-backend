@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Rate } from 'k6/metrics';
-import { setup } from './setup.js';
+import { setup as setupTestData } from './setup.js';
 
 // Custom metrics
 const errorRate = new Rate('errors');
@@ -46,18 +46,21 @@ export const options = {
   },
 };
 
+// Service URLs
+const AUTH_URL = 'http://localhost:3001/api/v1';
+const BOOKING_URL = 'http://localhost:3003/api/v1';
+
 // Test data
-const BASE_URL = 'http://localhost:3000/api/v1';
 const SEAT_TYPES = ['VIP', 'STANDARD', 'ECONOMY'];
 
-// Get test data from setup
+// Setup function to get test data
 export function setup() {
-  return setup();
+  return setupTestData();
 }
 
 // Helper function to get auth token
 function getAuthToken(user) {
-  const loginRes = http.post(`${BASE_URL}/auth/login`, {
+  const loginRes = http.post(`${AUTH_URL}/auth/login`, {
     email: user.email,
     password: user.password
   });
@@ -92,7 +95,7 @@ export default function(data) {
   };
   
   const bookingRes = http.post(
-    `${BASE_URL}/bookings`,
+    `${BOOKING_URL}/bookings`,
     JSON.stringify(bookingPayload),
     { headers }
   );

@@ -14,7 +14,7 @@ export class TokenService {
   generateTokens(user: UserDocument) {
     const payload: JwtPayload = {
       email: user.email,
-      sub: user._id,
+      sub: user._id.toString(),
       roles: user.roles,
     };
 
