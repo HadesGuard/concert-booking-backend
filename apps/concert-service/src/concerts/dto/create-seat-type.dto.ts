@@ -47,7 +47,7 @@ export class CreateSeatTypeDto {
   })
   @IsNumber()
   @IsPositive()
-  availableSeats: number;
+  capacity: number;
 
   @ApiProperty({
     description: 'Whether the seat type is active',

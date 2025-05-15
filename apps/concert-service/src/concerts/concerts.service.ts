@@ -8,7 +8,6 @@ import { ListConcertsDto } from './dto/list-concerts.dto';
 import { SeatTypeService } from '../seat-types/seat-types.service';
 import { CacheService } from '../common/services/cache.service';
 import { SeatTypeEnum } from '../seat-types/enums/seat-type.enum';
-import { BookingStatus } from '@app/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { ConcertWithSeatTypes } from './interfaces/concert-with-seats.interface';
@@ -16,6 +15,10 @@ import { Cron } from '@nestjs/schedule';
 import { Inject } from '@nestjs/common';
 import { REDIS_CLIENT } from '../redis/redis.provider';
 import Redis from 'ioredis';
+import { SeatTypeDocument } from '../seat-types/schemas/seat-type.schema';
+import { BookingStatus } from '../enums/booking-status.enum';
+import { CreateSeatTypeDto } from './dto/create-seat-type.dto';
+import { SeatTypeDto } from './dto/create-seat-types.dto';
 
 @Injectable()
 export class ConcertsService implements OnModuleInit {
@@ -356,5 +359,41 @@ export class ConcertsService implements OnModuleInit {
     await this.cacheService.del(
       this.cacheService.generateKey(this.CACHE_PREFIX, 'upcoming')
     );
+  }
+
+  async createSeatTypes(concertId: string, seatTypes: SeatTypeDto[]) {
+    const concert = await this.concertModel.findById(concertId);
+    if (!concert) {
+      throw new NotFoundException(`Concert with ID ${concertId} not found`);
+    }
+
+    // Create seat types and get their IDs
+    const seatTypeDtos = seatTypes.map(seatType => ({
+      name: seatType.name,
+      description: `${seatType.name} seats for ${concert.name}`,
+      price: seatType.price,
+      capacity: seatType.capacity
+    }));
+    const createdSeatTypes = await this.seatTypeService.create(concertId, { seatTypes: seatTypeDtos });
+    const seatTypeIds = createdSeatTypes.map(seatType => seatType._id.toString());
+
+    // Update concert with seat type IDs
+    if (!concert.seatTypes) {
+      concert.seatTypes = [];
+    }
+    concert.seatTypes.push(...seatTypeIds);
+    await concert.save();
+
+    // Invalidate cache
+    await this.invalidateCache(concertId);
+
+    return concert;
+  }
+
+  async getSeatTypeById(concertId: string, seatTypeId: string) {
+    const concert = await this.concertModel.findById(concertId);
+    if (!concert) throw new NotFoundException('Concert not found');
+    if (!concert.seatTypes.includes(seatTypeId)) throw new NotFoundException('Seat type not found for this concert');
+    return this.seatTypeService.findOneByConcertId(concertId, seatTypeId);
   }
 } 

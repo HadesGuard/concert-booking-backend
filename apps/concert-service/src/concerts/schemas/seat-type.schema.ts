@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { BaseSchema } from '@app/common';
+import { BaseSchema } from './base.schema';
 
 export type SeatTypeDocument = SeatType & Document;
 
@@ -19,7 +19,7 @@ export class SeatType extends BaseSchema {
   totalSeats: number;
 
   @Prop({ required: true })
-  availableSeats: number;
+  capacity: number;
 
   @Prop({ default: true })
   isActive: boolean;

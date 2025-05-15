@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { BaseSchema } from '@app/common';
+import { BaseSchema } from '../../concerts/schemas/base.schema';
 
 export type SeatTypeDocument = SeatType & Document;
 
@@ -38,8 +38,14 @@ export class SeatType extends BaseSchema {
   @Prop({ required: true, min: 1 })
   capacity: number;
 
+  @Prop({ required: true, min: 1 })
+  total: number;
+
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ required: true })
+  concertId: string;
 }
 
 export const SeatTypeSchema = SchemaFactory.createForClass(SeatType);

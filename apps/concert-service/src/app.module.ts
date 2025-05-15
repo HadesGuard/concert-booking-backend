@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConcertsModule } from './concerts/concerts.module';
 import * as path from 'path';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -20,8 +22,12 @@ import * as path from 'path';
       }),
     }),
     ConcertsModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'your-secret-key',
+      signOptions: { expiresIn: '15m' },
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtStrategy],
 })
 export class AppModule {}

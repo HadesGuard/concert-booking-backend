@@ -3,7 +3,7 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { UserDocument } from '../users/schemas/user.schema';
 import { TokenService } from './services/token.service';
-import { Role } from '@app/common';
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class AuthService {

@@ -1,7 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { BaseSchema } from '@app/common';
-import { BookingStatus } from '../enums/booking-status.enum';
+import { BaseSchema } from './base.schema';
+
+export enum BookingStatus {
+  ACTIVE = 'ACTIVE',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+}
 
 export type BookingDocument = Booking & Document;
 

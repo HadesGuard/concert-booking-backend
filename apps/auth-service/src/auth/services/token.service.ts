@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from '@app/common';
 import { UserDocument } from '../../users/schemas/user.schema';
+import { JwtPayload } from '../../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class TokenService {
@@ -19,11 +19,11 @@ export class TokenService {
     };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get('auth.jwt.accessExpiration'),
+      expiresIn: this.configService.get('auth.jwt.accessExpiration') || '15m',
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get('auth.jwt.refreshExpiration'),
+      expiresIn: this.configService.get('auth.jwt.refreshExpiration') || '7d',
     });
 
     return { accessToken, refreshToken };
@@ -31,7 +31,7 @@ export class TokenService {
 
   verifyRefreshToken(refreshToken: string): JwtPayload {
     return this.jwtService.verify(refreshToken, {
-      secret: this.configService.get('auth.jwt.secret'),
+      secret: this.configService.get('auth.jwt.secret') || 'your-secret-key',
     });
   }
 }
