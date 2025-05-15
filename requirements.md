@@ -49,8 +49,8 @@ Your system must support high concurrency while preventing overbooking and dupli
   - [x] Notification Service
 
 ### Testing
-- [ ] Load test with 1,000 users booking concurrently
-  - [ ] Using k6, autocannon, or artillery
+- [x] Load test with 1,000 users booking concurrently
+  - [x] Using k6, autocannon, or artillery
 
 ### Deployment
 - [x] Docker compose file for:
