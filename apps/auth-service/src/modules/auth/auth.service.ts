@@ -2,8 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { UserDocument } from '../users/schemas/user.schema';
-import { TokenService } from './services/token.service';
-import { Role } from '../enums/role.enum';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
