@@ -21,14 +21,14 @@ print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-# Function to cleanup on exit
-cleanup() {
-    print_status "Cleaning up..."
-    docker compose down -v
-}
+# # Function to cleanup on exit
+# cleanup() {
+#     print_status "Cleaning up..."
+#     docker compose down -v
+# }
 
-# Register cleanup function
-trap cleanup EXIT
+# # Register cleanup function
+# trap cleanup EXIT
 
 # Check if k6 is installed
 if ! command -v k6 &> /dev/null; then
@@ -76,7 +76,7 @@ fi
 
 # 4. Wait for services to be ready
 print_status "Waiting for services to be ready..."
-sleep 30  # Increased from 10 to 30 seconds
+sleep 10  # Increased from 10 to 30 seconds
 
 # 5. Run k6 load test
 print_status "Running k6 load test..."

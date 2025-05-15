@@ -16,13 +16,20 @@ export class SeatTypeService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Load all seat types from DB and set available seats in Redis
-    const seatTypes = await this.seatTypeModel.find().exec();
-    for (const seatType of seatTypes) {
-      await this.redisClient.set(
-        `concert:${seatType.concertId}:seatType:${seatType._id}:available`,
-        seatType.capacity
-      );
+    try {
+      console.log('Initializing seat types in Redis...');
+      const seatTypes = await this.seatTypeModel.find().exec();
+      
+      for (const seatType of seatTypes) {
+        const redisKey = `concert:${seatType.concertId}:seatType:${seatType._id}:available`;
+        await this.redisClient.set(redisKey, seatType.capacity);
+        console.log(`Initialized Redis key ${redisKey} with capacity ${seatType.capacity}`);
+      }
+      
+      console.log(`Successfully initialized ${seatTypes.length} seat types in Redis`);
+    } catch (error) {
+      console.error('Failed to initialize seat types in Redis:', error);
+      throw error;
     }
   }
 

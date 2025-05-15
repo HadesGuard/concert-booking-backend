@@ -124,20 +124,8 @@ export function setup() {
         { 
           name: 'VIP', 
           price: 100, 
-          capacity: 1000,
+          capacity: 1100,
           description: 'VIP seats with premium view'
-        },
-        { 
-          name: 'STANDARD', 
-          price: 50, 
-          capacity: 2000,
-          description: 'Standard seats with good view'
-        },
-        { 
-          name: 'ECONOMY', 
-          price: 25, 
-          capacity: 3000,
-          description: 'Economy seats with basic view'
         }
       ];
 
@@ -178,13 +166,11 @@ export function setup() {
       console.log('Creating test users...');
       const testUsers = [];
       const TOTAL_USERS = 1000;
-      const BATCH_SIZE = 10; // Create 10 users at a time
+      const BATCH_SIZE = 50; // Create 50 users at a time
       const DELAY_BETWEEN_BATCHES = 1; // 1 second delay between batches
-      const DELAY_BEFORE_LOGIN = 0.5; // 0.5 second delay before login verification
       
       for (let i = 0; i < TOTAL_USERS; i += BATCH_SIZE) {
         const batch = [];
-        const loginBatch = [];
         
         // Prepare registration batch
         for (let j = 0; j < BATCH_SIZE && i + j < TOTAL_USERS; j++) {
@@ -206,41 +192,50 @@ export function setup() {
         // Send registration batch
         const responses = http.batch(batch);
         
-        // Prepare login batch for successful registrations
+        // Process registration responses
         responses.forEach((res, index) => {
-          if (res.status === 201 || res.status === 409) {
-            loginBatch.push({
-              method: 'POST',
-              url: `${AUTH_URL}/auth/login`,
-              body: JSON.stringify({
+          if (res.status === 201 || res.status === 200) {
+            try {
+              const userData = JSON.parse(res.body);
+              testUsers.push({
                 email: `test${i + index}@example.com`,
-                password: 'password123'
-              }),
-              params: {
-                headers: { 'Content-Type': 'application/json' }
-              }
-            });
-          } else {
-            console.warn(`Failed to create user ${i + index}: ${res.body}`);
-          }
-        });
-
-        // Wait a bit before login batch
-        sleep(DELAY_BEFORE_LOGIN);
-
-        // Send login batch
-        const loginResponses = http.batch(loginBatch);
-        
-        // Process login responses
-        loginResponses.forEach((res, index) => {
-          if (res.status === 200 || res.status === 201) {
-            testUsers.push({
+                password: 'password123',
+                access_token: userData.access_token,
+                refresh_token: userData.refresh_token,
+                userId: userData.user?.id
+              });
+              console.log(`User ${i + index} created and tokens stored`);
+            } catch (error) {
+              console.warn(`Failed to parse user ${i + index} response:`, error);
+            }
+          } else if (res.status === 409) {
+            // If user exists, try to login to get tokens
+            const loginRes = http.post(`${AUTH_URL}/auth/login`, JSON.stringify({
               email: `test${i + index}@example.com`,
               password: 'password123'
+            }), {
+              headers: { 'Content-Type': 'application/json' }
             });
-            console.log(`User ${i + index} verified (new or existing)`);
+
+            if (loginRes.status === 200 || loginRes.status === 201) {
+              try {
+                const userData = JSON.parse(loginRes.body);
+                testUsers.push({
+                  email: `test${i + index}@example.com`,
+                  password: 'password123',
+                  access_token: userData.access_token,
+                  refresh_token: userData.refresh_token,
+                  userId: userData.user?.id
+                });
+                console.log(`User ${i + index} logged in and tokens stored`);
+              } catch (error) {
+                console.warn(`Failed to parse login response for user ${i + index}:`, error);
+              }
+            } else {
+              console.warn(`Failed to login existing user ${i + index}: ${loginRes.body}`);
+            }
           } else {
-            console.warn(`User ${i + index} exists but login failed: ${res.body}`);
+            console.warn(`Failed to create user ${i + index}: ${res.body}`);
           }
         });
 
@@ -249,15 +244,15 @@ export function setup() {
         
         // Log progress
         if ((i + BATCH_SIZE) % 100 === 0) {
-          console.log(`Verified ${testUsers.length} users so far...`);
+          console.log(`Created/verified ${testUsers.length} users so far...`);
         }
       }
 
       if (testUsers.length === 0) {
-        throw new Error('Failed to verify any test users');
+        throw new Error('Failed to create/verify any test users');
       }
 
-      console.log(`Successfully verified ${testUsers.length} test users`);
+      console.log(`Successfully created/verified ${testUsers.length} test users`);
 
       // Return test data
       return {

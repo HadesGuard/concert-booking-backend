@@ -65,60 +65,86 @@ export class BookingsService {
   }
 
   private async validateConcert(concertId: string, seatTypeId: string) {
-    const concert = await this.httpClient.get<any>(
-      `${this.concertServiceUrl}/concerts/${concertId}`
-    );
-    
-    if (!concert.isActive) {
-      throw new BadRequestException('This concert is no longer available for booking');
-    }
+    try {
+      const concert = await this.httpClient.get<any>(
+        `${this.concertServiceUrl}/concerts/${concertId}`
+      );
+      
+      if (!concert.isActive) {
+        throw new BadRequestException('This concert is no longer available for booking');
+      }
 
-    // Check if seatTypeId exists in the concert's seatTypes array
-    const seatTypeExists = concert.seatTypes.includes(seatTypeId);
-    if (!seatTypeExists) {
+      // Check if seatTypeId exists in the concert's seatTypes array
+      const seatTypeExists = concert.seatTypes.includes(seatTypeId);
+      if (!seatTypeExists) {
+        throw new BadRequestException(
+          'Seat type not found',
+          `Seat type ${seatTypeId} is not available for concert ${concertId}. Available seat types: ${concert.seatTypes.join(', ')}`
+        );
+      }
+
+      // Get seat type details from concert service
+      const seatTypeDetails = await this.httpClient.get<any>(
+        `${this.concertServiceUrl}/concerts/${concertId}/seat-types/${seatTypeId}`
+      );
+
+      if (seatTypeDetails.capacity <= 0) {
+        throw new BadRequestException(
+          'No tickets left for this seat type',
+          `Seat type ${seatTypeId} has no available seats for concert ${concertId}`
+        );
+      }
+
+      return { concert, seatType: seatTypeDetails };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new BadRequestException(
-        'Seat type not found',
-        `Seat type ${seatTypeId} is not available for concert ${concertId}. Available seat types: ${concert.seatTypes.join(', ')}`
+        'Failed to validate concert and seat type',
+        error.message
       );
     }
-
-    // Get seat type details from concert service
-    const seatTypeDetails = await this.httpClient.get<any>(
-      `${this.concertServiceUrl}/concerts/${concertId}/seat-types/${seatTypeId}`
-    );
-
-    if (seatTypeDetails.capacity <= 0) {
-      throw new BadRequestException(
-        'No tickets left for this seat type',
-        `Seat type ${seatTypeId} has no available seats for concert ${concertId}`
-      );
-    }
-
-    return { concert, seatType: seatTypeDetails };
   }
 
   private async checkSeatAvailability(concertId: string, seatTypeId: string): Promise<number> {
     const redisKey = `concert:${concertId}:seatType:${seatTypeId}:available`;
     const luaScript = `
       local available = tonumber(redis.call('get', KEYS[1]))
-      if not available or available <= 0 then
-        return -1
+      if not available then
+        return -2  -- Key not found
       end
-      redis.call('decr', KEYS[1])
-      return available - 1
+      if available <= 0 then
+        return -1  -- No seats left
+      end
+      local newAvailable = available - 1
+      redis.call('set', KEYS[1], newAvailable)
+      return newAvailable
     `;
     
     try {
       const result = await this.redisClient.eval(luaScript, 1, redisKey);
       if (result === -1) {
-        throw new BadRequestException('No tickets left for this seat type (atomic check)');
+        throw new BadRequestException(
+          'No tickets left for this seat type',
+          `Seat type ${seatTypeId} has no available seats for concert ${concertId}`
+        );
+      }
+      if (result === -2) {
+        throw new BadRequestException(
+          'Seat availability not initialized',
+          `Please contact support. Seat type ${seatTypeId} for concert ${concertId}`
+        );
       }
       return Number(result);
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to check seat availability');
+      throw new BadRequestException(
+        'Failed to check seat availability',
+        error.message
+      );
     }
   }
 
@@ -135,48 +161,61 @@ export class BookingsService {
   }
 
   async create(createBookingDto: CreateBookingDto): Promise<Booking> {
-    // Check for duplicate booking
-    const existing = await this.bookingModel.findOne({
-      userId: createBookingDto.userId,
-      concertId: createBookingDto.concertId,
-      status: BookingStatus.ACTIVE,
-    });
-    if (existing) {
-      throw new BadRequestException('User has already booked this concert');
-    }
-
-    // Validate concert and seat availability
-    await this.validateConcert(createBookingDto.concertId, createBookingDto.seatTypeId);
-    await this.checkSeatAvailability(createBookingDto.concertId, createBookingDto.seatTypeId);
-
-    // Create booking
-    const booking = new this.bookingModel({
-      ...createBookingDto,
-      status: BookingStatus.ACTIVE,
-    });
-    const savedBooking = await booking.save();
-
-    // Fetch user email from auth-service
-    let userEmail = null;
     try {
-      const userRes = await this.fetchWithTimeout(
-        `${this.authServiceUrl}/users/${createBookingDto.userId}`
-      );
-      userEmail = userRes.data.email;
+      // Check for duplicate booking
+      const existing = await this.bookingModel.findOne({
+        userId: createBookingDto.userId,
+        concertId: createBookingDto.concertId,
+        status: BookingStatus.ACTIVE,
+      });
+      if (existing) {
+        throw new BadRequestException(
+          'User has already booked this concert',
+          `User ${createBookingDto.userId} already has an active booking for concert ${createBookingDto.concertId}`
+        );
+      }
+
+      // Validate concert and seat availability
+      await this.validateConcert(createBookingDto.concertId, createBookingDto.seatTypeId);
+      await this.checkSeatAvailability(createBookingDto.concertId, createBookingDto.seatTypeId);
+
+      // Create booking
+      const booking = new this.bookingModel({
+        ...createBookingDto,
+        status: BookingStatus.ACTIVE,
+      });
+      const savedBooking = await booking.save();
+
+      // Fetch user email from auth-service
+      let userEmail = null;
+      try {
+        const userRes = await this.fetchWithTimeout(
+          `${this.authServiceUrl}/users/${createBookingDto.userId}`
+        );
+        userEmail = userRes.data.email;
+      } catch (error) {
+        // Silent fail for email fetching
+      }
+
+      // Publish booking.created event
+      await this.publishBookingEvent('booking.created', {
+        bookingId: savedBooking._id,
+        userId: savedBooking.userId,
+        concertId: savedBooking.concertId,
+        seatTypeId: savedBooking.seatTypeId,
+        email: userEmail,
+      });
+      console.log('Booking created successfully');
+      return savedBooking;
     } catch (error) {
-      // Silent fail for email fetching
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Failed to create booking',
+        error.message
+      );
     }
-
-    // Publish booking.created event
-    await this.publishBookingEvent('booking.created', {
-      bookingId: savedBooking._id,
-      userId: savedBooking.userId,
-      concertId: savedBooking.concertId,
-      seatTypeId: savedBooking.seatTypeId,
-      email: userEmail,
-    });
-
-    return savedBooking;
   }
 
   async findAll(): Promise<Booking[]> {

@@ -62,7 +62,8 @@ Your system must support high concurrency while preventing overbooking and dupli
 - [x] README.md with:
   - [x] Setup instructions
   - [x] Usage instructions
-- [ ] Postman Collection for API testing
+- [x] Postman Collection for API testing
+  - [x] A ready-to-use Postman Collection (`Concert Booking API.postman_collection.json`) is included for API testing.
 
 ## Bonus Requirements
 - [x] Cancel booking API (free up seats)
