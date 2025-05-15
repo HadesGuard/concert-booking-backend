@@ -16,8 +16,8 @@ export class ServiceAuthService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.serviceName = 'booking-service';
-    this.jwtSecret = this.configService.get<string>('JWT_SECRET');
-    this.tokenExpiry = '1h';
+    this.jwtSecret = this.configService.get<string>('booking.jwt.secret');
+    this.tokenExpiry = this.configService.get<string>('booking.jwt.serviceExpiry');
   }
 
   async getServiceToken(): Promise<string> {

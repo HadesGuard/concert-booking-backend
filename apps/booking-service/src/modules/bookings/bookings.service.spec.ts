@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BookingsService } from './bookings.service';
-import { Booking, BookingStatus } from './schemas/booking.schema';
-import { CreateBookingDto } from './dto/create-booking.dto';
+
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { REDIS_CLIENT } from '../redis/redis.provider';
 import axios, { AxiosError } from 'axios';
+import { Booking } from '../../common/schemas/booking.schema';
+import { CreateBookingDto } from '../../common/dto/create-booking.dto';
+import { BookingStatus } from '../../common/enums/booking.enum';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { ServiceAuthService } from '../../auth/service-auth.service';
 import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ServiceAuthService } from '../../modules/auth/auth.service';
 
 @Injectable()
 export class HttpClientService {
